@@ -1,0 +1,1203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WUNDERKAMMER — A Cabinet of Computational Curiosities</title>
+<meta name="description" content="Eight living algorithms, drawn in real time. No images, no libraries — every frame computed.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,300;1,9..144,400&family=Newsreader:ital,opsz,wght@0,6..72,400;1,6..72,400;1,6..72,500&family=Spline+Sans+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --wall:      #10201b;
+    --wall-deep: #0a1511;
+    --plate:     #071310;
+    --ivory:     #ede6d3;
+    --paper:     #e9e0c9;
+    --umber:     #2b2318;
+    --brass:     #c29b3c;
+    --brass-dim: rgba(194, 155, 60, 0.35);
+    --verdigris: #6faf9b;
+    --pale:      #cfc6ad;
+    --display: "Fraunces", serif;
+    --body:    "Newsreader", serif;
+    --mono:    "Spline Sans Mono", monospace;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--wall);
+    color: var(--ivory);
+    font-family: var(--body);
+    font-size: 17px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+
+  ::selection { background: var(--brass); color: var(--wall-deep); }
+
+  a { color: inherit; }
+
+  button:focus-visible, a:focus-visible {
+    outline: 2px solid var(--brass);
+    outline-offset: 3px;
+  }
+
+  /* ============ HERO ============ */
+
+  .hero {
+    position: relative;
+    height: 100svh;
+    min-height: 560px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    background: var(--wall-deep);
+  }
+
+  .hero canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+
+  .hero::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 90% 70% at 50% 45%, transparent 30%, rgba(10, 21, 17, 0.75) 100%),
+      linear-gradient(to bottom, rgba(10,21,17,0.35), transparent 25%, transparent 70%, var(--wall) 100%);
+    pointer-events: none;
+  }
+
+  .hero-inner {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    padding: 0 24px;
+    max-width: 900px;
+  }
+
+  .hero-eyebrow {
+    font-family: var(--mono);
+    font-weight: 300;
+    font-size: 12px;
+    letter-spacing: 0.32em;
+    text-transform: uppercase;
+    color: var(--brass);
+    margin-bottom: 28px;
+  }
+
+  .hero h1 {
+    font-family: var(--display);
+    font-optical-sizing: auto;
+    font-size: clamp(52px, 11vw, 150px);
+    font-weight: 300;
+    letter-spacing: 0.06em;
+    line-height: 0.95;
+    color: var(--ivory);
+    text-transform: uppercase;
+  }
+
+  .hero h1 .char {
+    display: inline-block;
+    opacity: 0;
+    transform: translateY(0.35em);
+    animation: rise 1.1s cubic-bezier(0.19, 1, 0.22, 1) forwards;
+  }
+
+  @keyframes rise {
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .hero-sub {
+    margin-top: 26px;
+    font-family: var(--body);
+    font-style: italic;
+    font-size: clamp(17px, 2.2vw, 22px);
+    color: var(--pale);
+    opacity: 0;
+    animation: fadein 1.4s ease 0.9s forwards;
+  }
+
+  .hero-rule {
+    width: 64px;
+    height: 1px;
+    background: var(--brass-dim);
+    margin: 30px auto 0;
+    opacity: 0;
+    animation: fadein 1.4s ease 1.1s forwards;
+  }
+
+  .hero-note {
+    margin-top: 30px;
+    font-family: var(--mono);
+    font-weight: 300;
+    font-size: 12px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(237, 230, 211, 0.55);
+    opacity: 0;
+    animation: fadein 1.4s ease 1.3s forwards;
+  }
+
+  @keyframes fadein { to { opacity: 1; } }
+
+  .hero-scroll {
+    position: absolute;
+    bottom: 34px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 2;
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 300;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: rgba(237, 230, 211, 0.5);
+    text-decoration: none;
+    padding: 8px;
+    opacity: 0;
+    animation: fadein 1.4s ease 1.8s forwards;
+  }
+
+  .hero-scroll:hover { color: var(--brass); }
+
+  /* ============ INTRO ============ */
+
+  .intro {
+    max-width: 620px;
+    margin: 0 auto;
+    padding: 130px 28px 90px;
+    text-align: center;
+  }
+
+  .intro p {
+    font-size: clamp(19px, 2.4vw, 24px);
+    line-height: 1.65;
+    color: var(--pale);
+  }
+
+  .intro p em { color: var(--ivory); font-style: italic; }
+
+  .intro .fine {
+    margin-top: 34px;
+    font-family: var(--mono);
+    font-weight: 300;
+    font-size: 12px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--brass);
+  }
+
+  /* ============ GALLERY ============ */
+
+  .gallery {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 0 28px 60px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 90px 44px;
+  }
+
+  .plate { grid-column: span 1; }
+  .plate.wide { grid-column: 1 / -1; }
+
+  .plate {
+    opacity: 0;
+    transform: translateY(28px);
+    transition: opacity 1s cubic-bezier(0.19, 1, 0.22, 1), transform 1s cubic-bezier(0.19, 1, 0.22, 1);
+  }
+
+  .plate.revealed { opacity: 1; transform: none; }
+
+  .frame {
+    position: relative;
+    background: var(--plate);
+    border: 1px solid var(--brass-dim);
+    outline: 1px solid rgba(194, 155, 60, 0.1);
+    outline-offset: 5px;
+    box-shadow: 0 30px 60px -20px rgba(0, 0, 0, 0.55);
+  }
+
+  .frame canvas {
+    display: block;
+    width: 100%;
+    aspect-ratio: 3 / 2;
+  }
+
+  .plate.wide .frame canvas { aspect-ratio: 21 / 9; }
+
+  /* wall label */
+  .label {
+    position: relative;
+    width: min(92%, 460px);
+    margin: -26px 0 0 22px;
+    background: var(--paper);
+    color: var(--umber);
+    padding: 18px 20px 16px;
+    box-shadow: 0 14px 30px -12px rgba(0, 0, 0, 0.6);
+  }
+
+  .label-top {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 400;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #7a6a4a;
+    border-bottom: 1px solid rgba(43, 35, 24, 0.18);
+    padding-bottom: 9px;
+    margin-bottom: 11px;
+  }
+
+  .label h2 {
+    font-family: var(--display);
+    font-style: italic;
+    font-weight: 400;
+    font-size: 24px;
+    line-height: 1.15;
+    color: var(--umber);
+  }
+
+  .label .common {
+    font-family: var(--mono);
+    font-weight: 400;
+    font-size: 11.5px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #7a6a4a;
+    margin-top: 3px;
+  }
+
+  .label .medium {
+    font-family: var(--mono);
+    font-weight: 300;
+    font-size: 12px;
+    color: #4c4130;
+    margin-top: 11px;
+  }
+
+  .label .note {
+    font-family: var(--body);
+    font-style: italic;
+    font-size: 15.5px;
+    line-height: 1.5;
+    color: #3d3425;
+    margin-top: 9px;
+  }
+
+  .reseed {
+    appearance: none;
+    border: 1px solid rgba(43, 35, 24, 0.35);
+    background: transparent;
+    color: var(--umber);
+    font-family: var(--mono);
+    font-size: 10.5px;
+    font-weight: 500;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    padding: 5px 10px 4px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.25s ease, color 0.25s ease;
+  }
+
+  .reseed:hover { background: var(--umber); color: var(--paper); }
+
+  /* ============ COLOPHON ============ */
+
+  .colophon {
+    border-top: 1px solid rgba(194, 155, 60, 0.18);
+    margin-top: 90px;
+    padding: 90px 28px 110px;
+    text-align: center;
+  }
+
+  .colophon .mark {
+    font-family: var(--display);
+    font-style: italic;
+    font-size: 30px;
+    font-weight: 300;
+    color: var(--brass);
+  }
+
+  .colophon p {
+    max-width: 520px;
+    margin: 26px auto 0;
+    color: var(--pale);
+    font-size: 16.5px;
+  }
+
+  .colophon .fine {
+    margin-top: 36px;
+    font-family: var(--mono);
+    font-weight: 300;
+    font-size: 11px;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: rgba(237, 230, 211, 0.45);
+  }
+
+  /* ============ RESPONSIVE ============ */
+
+  @media (max-width: 780px) {
+    .gallery { grid-template-columns: 1fr; gap: 72px; }
+    .plate { grid-column: 1 / -1; }
+    .plate.wide .frame canvas { aspect-ratio: 3 / 2; }
+    .label { margin-left: 12px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .hero h1 .char { animation-duration: 0.01s; }
+    .hero-sub, .hero-rule, .hero-note, .hero-scroll { animation-duration: 0.01s; animation-delay: 0s; }
+    .plate { transition: none; opacity: 1; transform: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ============ HERO ============ -->
+<header class="hero">
+  <canvas id="hero-canvas" aria-hidden="true"></canvas>
+  <div class="hero-inner">
+    <p class="hero-eyebrow">Anno MMXXVI &middot; Room I</p>
+    <h1 id="title" aria-label="Wunderkammer">WUNDERKAMMER</h1>
+    <p class="hero-sub">A cabinet of computational curiosities</p>
+    <div class="hero-rule"></div>
+    <p class="hero-note">Eight living specimens &middot; drawn in real time &middot; no images, no libraries</p>
+  </div>
+  <a class="hero-scroll" href="#collection">Enter the collection</a>
+</header>
+
+<!-- ============ INTRO ============ -->
+<section class="intro" id="collection">
+  <p>Nothing on this page is a picture. Each plate below is an <em>algorithm kept alive in your browser</em> — a small law of nature, written in a few dozen lines, computing every frame as you watch. Press <em>reseed</em> and the specimen is born again, never the same twice.</p>
+  <p class="fine">Handle the specimens freely</p>
+</section>
+
+<!-- ============ GALLERY ============ -->
+<main class="gallery" id="gallery"></main>
+
+<!-- ============ COLOPHON ============ -->
+<footer class="colophon">
+  <p class="mark">finis</p>
+  <p>Every specimen in this cabinet — the flocking, the coral, the butterfly, the ink — was written in a single sitting by Claude Fable&nbsp;5. One HTML file. Zero dependencies. Roughly a thousand lines, all of them awake.</p>
+  <p class="fine">Wunderkammer &middot; MMXXVI &middot; collected, not photographed</p>
+</footer>
+
+<script>
+"use strict";
+
+/* ==================================================================
+   utilities
+   ================================================================== */
+
+const TAU = Math.PI * 2;
+const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+function mulberry32(seed) {
+  let a = seed >>> 0;
+  return function () {
+    a |= 0; a = (a + 0x6D2B79F5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+/* 3D value noise, seeded */
+function makeNoise(rand) {
+  const p = new Uint8Array(512);
+  const src = Array.from({ length: 256 }, (_, i) => i);
+  for (let i = 255; i > 0; i--) {
+    const j = (rand() * (i + 1)) | 0;
+    [src[i], src[j]] = [src[j], src[i]];
+  }
+  for (let i = 0; i < 512; i++) p[i] = src[i & 255];
+  const fade = t => t * t * t * (t * (t * 6 - 15) + 10);
+  const lerp = (a, b, t) => a + (b - a) * t;
+  return function n3(x, y, z) {
+    const X = Math.floor(x) & 255, Y = Math.floor(y) & 255, Z = Math.floor(z) & 255;
+    x -= Math.floor(x); y -= Math.floor(y); z -= Math.floor(z);
+    const u = fade(x), v = fade(y), w = fade(z);
+    const h = (i, j, k) => p[p[p[(X + i) & 255] + ((Y + j) & 255)] + ((Z + k) & 255)] / 255;
+    return lerp(
+      lerp(lerp(h(0, 0, 0), h(1, 0, 0), u), lerp(h(0, 1, 0), h(1, 1, 0), u), v),
+      lerp(lerp(h(0, 0, 1), h(1, 0, 1), u), lerp(h(0, 1, 1), h(1, 1, 1), u), v), w);
+  };
+}
+
+function hexToRgb(hex) {
+  const n = parseInt(hex.slice(1), 16);
+  return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+}
+
+function mix(a, b, t) {
+  return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
+}
+
+const C = {
+  plate:     hexToRgb("#071310"),
+  ivory:     hexToRgb("#ede6d3"),
+  brass:     hexToRgb("#c29b3c"),
+  verdigris: hexToRgb("#6faf9b"),
+  pale:      hexToRgb("#cfc6ad"),
+};
+
+/* ==================================================================
+   plate runtime: owns a canvas, a rAF loop, visibility, reseeding
+   ================================================================== */
+
+class Plate {
+  constructor(canvas, maker) {
+    this.canvas = canvas;
+    this.maker = maker;
+    this.ctx = canvas.getContext("2d");
+    this.visible = false;
+    this.raf = null;
+    this.t = 0;
+    this.seed = (Math.random() * 1e9) | 0;
+    this.sized = false;
+
+    const io = new IntersectionObserver(entries => {
+      for (const e of entries) {
+        this.visible = e.isIntersecting;
+        if (this.visible) {
+          if (!this.sized) this.setup();
+          this.play();
+        } else {
+          this.pause();
+        }
+      }
+    }, { rootMargin: "80px" });
+    io.observe(canvas);
+  }
+
+  setup() {
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const rect = this.canvas.getBoundingClientRect();
+    this.w = Math.max(2, Math.round(rect.width));
+    this.h = Math.max(2, Math.round(rect.height));
+    this.canvas.width = this.w * dpr;
+    this.canvas.height = this.h * dpr;
+    this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    this.sized = true;
+    this.init();
+  }
+
+  init() {
+    this.t = 0;
+    const rand = mulberry32(this.seed);
+    this.ctx.fillStyle = "#071310";
+    this.ctx.fillRect(0, 0, this.w, this.h);
+    this.sim = this.maker(this.ctx, this.w, this.h, rand);
+    if (reduceMotion) {
+      // render a finished still instead of animating
+      for (let i = 0; i < (this.sim.warmup || 300); i++) this.sim.frame(this.t++);
+    }
+  }
+
+  reseed() {
+    this.seed = (Math.random() * 1e9) | 0;
+    if (!this.sized) return;
+    this.init();
+  }
+
+  play() {
+    if (this.raf || reduceMotion) return;
+    const loop = () => {
+      this.raf = requestAnimationFrame(loop);
+      this.sim.frame(this.t++);
+    };
+    this.raf = requestAnimationFrame(loop);
+  }
+
+  pause() {
+    if (this.raf) { cancelAnimationFrame(this.raf); this.raf = null; }
+  }
+}
+
+/* ==================================================================
+   WK.000 — hero: slow drifting ink, quiet enough to read over
+   ================================================================== */
+
+function heroMaker(ctx, w, h, rand) {
+  const noise = makeNoise(rand);
+  const n = Math.min(1400, Math.round(w * h / 900));
+  const px = new Float32Array(n), py = new Float32Array(n), life = new Float32Array(n);
+  for (let i = 0; i < n; i++) {
+    px[i] = rand() * w; py[i] = rand() * h; life[i] = rand() * 260;
+  }
+  const scale = 0.0016;
+  ctx.fillStyle = "#0a1511";
+  ctx.fillRect(0, 0, w, h);
+  return {
+    warmup: 500,
+    frame(t) {
+      ctx.fillStyle = "rgba(10, 21, 17, 0.028)";
+      ctx.fillRect(0, 0, w, h);
+      const z = t * 0.0018;
+      ctx.lineWidth = 1;
+      for (let i = 0; i < n; i++) {
+        const a = noise(px[i] * scale, py[i] * scale, z) * TAU * 2.4;
+        const nx = px[i] + Math.cos(a) * 1.15;
+        const ny = py[i] + Math.sin(a) * 1.15;
+        const shade = noise(px[i] * scale * 2, py[i] * scale * 2, z + 40);
+        const col = shade > 0.62 ? "rgba(194,155,60,0.20)" :
+                    shade < 0.38 ? "rgba(111,175,155,0.14)" : "rgba(207,198,173,0.10)";
+        ctx.strokeStyle = col;
+        ctx.beginPath();
+        ctx.moveTo(px[i], py[i]);
+        ctx.lineTo(nx, ny);
+        ctx.stroke();
+        px[i] = nx; py[i] = ny;
+        if (--life[i] < 0 || nx < -5 || nx > w + 5 || ny < -5 || ny > h + 5) {
+          px[i] = rand() * w; py[i] = rand() * h; life[i] = 140 + rand() * 200;
+        }
+      }
+    }
+  };
+}
+
+/* ==================================================================
+   WK.001 — Flumen ignotum: curl-noise ink flow
+   ================================================================== */
+
+function flowMaker(ctx, w, h, rand) {
+  const noise = makeNoise(rand);
+  const n = Math.min(3200, Math.round(w * h / 260));
+  const px = new Float32Array(n), py = new Float32Array(n), life = new Float32Array(n);
+  for (let i = 0; i < n; i++) {
+    px[i] = rand() * w; py[i] = rand() * h; life[i] = rand() * 220;
+  }
+  const scale = 0.0032;
+  return {
+    warmup: 420,
+    frame(t) {
+      ctx.fillStyle = "rgba(7, 19, 16, 0.045)";
+      ctx.fillRect(0, 0, w, h);
+      const z = t * 0.0025;
+      ctx.lineWidth = 1;
+      for (let i = 0; i < n; i++) {
+        const a = noise(px[i] * scale, py[i] * scale, z) * TAU * 2.6;
+        const nx = px[i] + Math.cos(a) * 1.5;
+        const ny = py[i] + Math.sin(a) * 1.5;
+        const shade = noise(px[i] * scale * 1.7, py[i] * scale * 1.7, z + 17);
+        ctx.strokeStyle = shade > 0.58 ? "rgba(194,155,60,0.34)" : "rgba(237,230,211,0.16)";
+        ctx.beginPath();
+        ctx.moveTo(px[i], py[i]);
+        ctx.lineTo(nx, ny);
+        ctx.stroke();
+        px[i] = nx; py[i] = ny;
+        if (--life[i] < 0 || nx < -4 || nx > w + 4 || ny < -4 || ny > h + 4) {
+          px[i] = rand() * w; py[i] = rand() * h; life[i] = 120 + rand() * 180;
+        }
+      }
+    }
+  };
+}
+
+/* ==================================================================
+   WK.002 — Sturnus calculans: murmuration of boids
+   ================================================================== */
+
+function boidsMaker(ctx, w, h, rand) {
+  const n = 170;
+  const bx = new Float32Array(n), by = new Float32Array(n);
+  const vx = new Float32Array(n), vy = new Float32Array(n);
+  for (let i = 0; i < n; i++) {
+    bx[i] = rand() * w; by[i] = rand() * h;
+    const a = rand() * TAU;
+    vx[i] = Math.cos(a) * 2; vy[i] = Math.sin(a) * 2;
+  }
+  const perception = 52, sepDist = 20, maxSpeed = 2.6, maxForce = 0.055;
+  return {
+    warmup: 600,
+    frame() {
+      ctx.fillStyle = "rgba(7, 19, 16, 0.16)";
+      ctx.fillRect(0, 0, w, h);
+      for (let i = 0; i < n; i++) {
+        let cx = 0, cy = 0, ax = 0, ay = 0, sx = 0, sy = 0, count = 0, sepCount = 0;
+        for (let j = 0; j < n; j++) {
+          if (i === j) continue;
+          const dx = bx[j] - bx[i], dy = by[j] - by[i];
+          const d2 = dx * dx + dy * dy;
+          if (d2 < perception * perception) {
+            cx += bx[j]; cy += by[j];
+            ax += vx[j]; ay += vy[j];
+            count++;
+            if (d2 < sepDist * sepDist && d2 > 0.01) {
+              const d = Math.sqrt(d2);
+              sx -= dx / d; sy -= dy / d; sepCount++;
+            }
+          }
+        }
+        let fx = 0, fy = 0;
+        if (count > 0) {
+          // cohesion
+          let tx = cx / count - bx[i], ty = cy / count - by[i];
+          let m = Math.hypot(tx, ty) || 1;
+          fx += (tx / m) * maxForce * 0.7; fy += (ty / m) * maxForce * 0.7;
+          // alignment
+          tx = ax / count; ty = ay / count;
+          m = Math.hypot(tx, ty) || 1;
+          fx += (tx / m) * maxForce; fy += (ty / m) * maxForce;
+        }
+        if (sepCount > 0) {
+          const m = Math.hypot(sx, sy) || 1;
+          fx += (sx / m) * maxForce * 1.8; fy += (sy / m) * maxForce * 1.8;
+        }
+        // gentle pull toward center keeps the flock on stage
+        fx += (w / 2 - bx[i]) * 0.00006;
+        fy += (h / 2 - by[i]) * 0.00006;
+        vx[i] += fx; vy[i] += fy;
+        const sp = Math.hypot(vx[i], vy[i]) || 1;
+        if (sp > maxSpeed) { vx[i] = vx[i] / sp * maxSpeed; vy[i] = vy[i] / sp * maxSpeed; }
+        bx[i] += vx[i]; by[i] += vy[i];
+        if (bx[i] < -20) bx[i] = w + 20; if (bx[i] > w + 20) bx[i] = -20;
+        if (by[i] < -20) by[i] = h + 20; if (by[i] > h + 20) by[i] = -20;
+      }
+      ctx.strokeStyle = "rgba(237, 230, 211, 0.85)";
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      for (let i = 0; i < n; i++) {
+        const sp = Math.hypot(vx[i], vy[i]) || 1;
+        const ux = vx[i] / sp, uy = vy[i] / sp;
+        ctx.moveTo(bx[i] - ux * 3, by[i] - uy * 3);
+        ctx.lineTo(bx[i] + ux * 3, by[i] + uy * 3);
+      }
+      ctx.stroke();
+    }
+  };
+}
+
+/* ==================================================================
+   WK.003 — Corallium chemicum: Gray–Scott reaction–diffusion
+   ================================================================== */
+
+function coralMaker(ctx, w, h, rand) {
+  const gw = 190, gh = Math.max(24, Math.round(gw * h / w));
+  const size = gw * gh;
+  let U = new Float32Array(size).fill(1);
+  let V = new Float32Array(size).fill(0);
+  let U2 = new Float32Array(size);
+  let V2 = new Float32Array(size);
+  // seed a few patches
+  const patches = 5 + (rand() * 4 | 0);
+  for (let p = 0; p < patches; p++) {
+    const cx = 8 + (rand() * (gw - 16)) | 0, cy = 8 + (rand() * (gh - 16)) | 0;
+    const r = 2 + (rand() * 3 | 0);
+    for (let y = cy - r; y <= cy + r; y++)
+      for (let x = cx - r; x <= cx + r; x++) {
+        const idx = y * gw + x;
+        U[idx] = 0.5; V[idx] = 0.25 + rand() * 0.05;
+      }
+  }
+  const F = 0.0545, K = 0.062, Du = 1.0, Dv = 0.5;
+  const off = document.createElement("canvas");
+  off.width = gw; off.height = gh;
+  const octx = off.getContext("2d");
+  const img = octx.createImageData(gw, gh);
+  const data = img.data;
+  // palette LUT: plate -> deep verdigris -> verdigris -> ivory
+  const lut = new Uint8Array(256 * 3);
+  const deepV = mix(C.plate, C.verdigris, 0.45);
+  for (let i = 0; i < 256; i++) {
+    const t = i / 255;
+    let c;
+    if (t < 0.35)      c = mix(C.plate, deepV, t / 0.35);
+    else if (t < 0.75) c = mix(deepV, C.verdigris, (t - 0.35) / 0.4);
+    else               c = mix(C.verdigris, C.ivory, (t - 0.75) / 0.25);
+    lut[i * 3] = c[0]; lut[i * 3 + 1] = c[1]; lut[i * 3 + 2] = c[2];
+  }
+  ctx.imageSmoothingEnabled = true;
+  return {
+    warmup: 700,
+    frame() {
+      for (let iter = 0; iter < 11; iter++) {
+        for (let y = 1; y < gh - 1; y++) {
+          const row = y * gw;
+          for (let x = 1; x < gw - 1; x++) {
+            const i = row + x;
+            const u = U[i], v = V[i];
+            const lapU = 0.2 * (U[i - 1] + U[i + 1] + U[i - gw] + U[i + gw])
+                       + 0.05 * (U[i - gw - 1] + U[i - gw + 1] + U[i + gw - 1] + U[i + gw + 1])
+                       - u;
+            const lapV = 0.2 * (V[i - 1] + V[i + 1] + V[i - gw] + V[i + gw])
+                       + 0.05 * (V[i - gw - 1] + V[i - gw + 1] + V[i + gw - 1] + V[i + gw + 1])
+                       - v;
+            const uvv = u * v * v;
+            U2[i] = u + (Du * lapU - uvv + F * (1 - u));
+            V2[i] = v + (Dv * lapV + uvv - (F + K) * v);
+          }
+        }
+        [U, U2] = [U2, U]; [V, V2] = [V2, V];
+      }
+      for (let i = 0; i < size; i++) {
+        const t = Math.min(255, (V[i] * 3.2 * 255) | 0);
+        data[i * 4] = lut[t * 3];
+        data[i * 4 + 1] = lut[t * 3 + 1];
+        data[i * 4 + 2] = lut[t * 3 + 2];
+        data[i * 4 + 3] = 255;
+      }
+      octx.putImageData(img, 0, 0);
+      ctx.drawImage(off, 0, 0, w, h);
+    }
+  };
+}
+
+/* ==================================================================
+   WK.004 — Limes crescens: differential growth
+   ================================================================== */
+
+function growthMaker(ctx, w, h, rand) {
+  // closed loop of nodes that repels itself and splits as it stretches
+  let nodes = [];
+  const startN = 24, r0 = Math.min(w, h) * 0.12;
+  for (let i = 0; i < startN; i++) {
+    const a = (i / startN) * TAU;
+    nodes.push({
+      x: w / 2 + Math.cos(a) * r0 + (rand() - 0.5) * 4,
+      y: h / 2 + Math.sin(a) * r0 + (rand() - 0.5) * 4
+    });
+  }
+  const maxNodes = 620, splitDist = 9, repelDist = 26, cell = repelDist;
+  return {
+    warmup: 900,
+    frame() {
+      const n = nodes.length;
+      // spatial hash
+      const grid = new Map();
+      for (let i = 0; i < n; i++) {
+        const key = ((nodes[i].x / cell) | 0) + "," + ((nodes[i].y / cell) | 0);
+        let bucket = grid.get(key);
+        if (!bucket) { bucket = []; grid.set(key, bucket); }
+        bucket.push(i);
+      }
+      const fx = new Float32Array(n), fy = new Float32Array(n);
+      for (let i = 0; i < n; i++) {
+        const p = nodes[i];
+        // cohesion with ring neighbours
+        const prev = nodes[(i - 1 + n) % n], next = nodes[(i + 1) % n];
+        fx[i] += (prev.x + next.x - 2 * p.x) * 0.09;
+        fy[i] += (prev.y + next.y - 2 * p.y) * 0.09;
+        // repulsion from all nearby nodes
+        const gx = (p.x / cell) | 0, gy = (p.y / cell) | 0;
+        for (let oy = -1; oy <= 1; oy++)
+          for (let ox = -1; ox <= 1; ox++) {
+            const bucket = grid.get((gx + ox) + "," + (gy + oy));
+            if (!bucket) continue;
+            for (const j of bucket) {
+              if (j === i) continue;
+              const dx = p.x - nodes[j].x, dy = p.y - nodes[j].y;
+              const d2 = dx * dx + dy * dy;
+              if (d2 > 0.01 && d2 < repelDist * repelDist) {
+                const d = Math.sqrt(d2);
+                const f = (1 - d / repelDist) * 0.55;
+                fx[i] += dx / d * f; fy[i] += dy / d * f;
+              }
+            }
+          }
+        // slight outward bias + noise wander
+        fx[i] += (rand() - 0.5) * 0.3;
+        fy[i] += (rand() - 0.5) * 0.3;
+      }
+      const margin = 14;
+      for (let i = 0; i < n; i++) {
+        nodes[i].x = Math.max(margin, Math.min(w - margin, nodes[i].x + fx[i]));
+        nodes[i].y = Math.max(margin, Math.min(h - margin, nodes[i].y + fy[i]));
+      }
+      // split long edges
+      if (n < maxNodes) {
+        const out = [];
+        for (let i = 0; i < n; i++) {
+          const a = nodes[i], b = nodes[(i + 1) % n];
+          out.push(a);
+          const d = Math.hypot(b.x - a.x, b.y - a.y);
+          if (d > splitDist && out.length + (n - i) < maxNodes) {
+            out.push({ x: (a.x + b.x) / 2 + (rand() - 0.5), y: (a.y + b.y) / 2 + (rand() - 0.5) });
+          }
+        }
+        nodes = out;
+      }
+      // accumulate: no clear, faint ivory pass each frame
+      ctx.strokeStyle = "rgba(237, 230, 211, 0.05)";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(nodes[0].x, nodes[0].y);
+      for (let i = 1; i < nodes.length; i++) ctx.lineTo(nodes[i].x, nodes[i].y);
+      ctx.closePath();
+      ctx.stroke();
+    }
+  };
+}
+
+/* ==================================================================
+   WK.005 — Papilio deterministicus: the Lorenz attractor
+   ================================================================== */
+
+function lorenzMaker(ctx, w, h, rand) {
+  const sigma = 10, rho = 28, beta = 8 / 3;
+  const bodies = [
+    { x: 0.1, y: 0, z: 24, col: "rgba(194,155,60,0.5)" },
+    { x: 0.1001, y: 0, z: 24, col: "rgba(111,175,155,0.42)" },
+    { x: 0.1002, y: 0, z: 24, col: "rgba(237,230,211,0.34)" },
+  ];
+  for (const b of bodies) { b.x += (rand() - 0.5) * 0.01; b.px = null; b.py = null; }
+  const scale = Math.min(w, h) / 68;
+  return {
+    warmup: 1400,
+    frame(t) {
+      ctx.fillStyle = "rgba(7, 19, 16, 0.018)";
+      ctx.fillRect(0, 0, w, h);
+      const ang = t * 0.004;
+      const ca = Math.cos(ang), sa = Math.sin(ang);
+      ctx.lineWidth = 1;
+      for (const b of bodies) {
+        ctx.strokeStyle = b.col;
+        ctx.beginPath();
+        let started = false;
+        for (let s = 0; s < 6; s++) {
+          const dt = 0.006;
+          const dx = sigma * (b.y - b.x);
+          const dy = b.x * (rho - b.z) - b.y;
+          const dz = b.x * b.y - beta * b.z;
+          b.x += dx * dt; b.y += dy * dt; b.z += dz * dt;
+          // rotate about vertical axis, project
+          const rx = b.x * ca + b.y * sa;
+          const ry = -b.x * sa + b.y * ca;
+          const depth = 1 + ry * 0.006;
+          const sxp = w / 2 + rx * scale * depth;
+          const syp = h / 2 + (28 - b.z) * scale * depth + h * 0.06;
+          if (!started) { ctx.moveTo(sxp, syp); started = true; }
+          else ctx.lineTo(sxp, syp);
+        }
+        ctx.stroke();
+      }
+    }
+  };
+}
+
+/* ==================================================================
+   WK.006 — Mycelium electricum: space colonization growth
+   ================================================================== */
+
+function myceliumMaker(ctx, w, h, rand) {
+  // attractors scattered across the plate; branches grow up from the soil
+  const attractors = [];
+  const nAttr = Math.round(w * h / 900);
+  for (let i = 0; i < nAttr; i++) {
+    attractors.push({ x: 20 + rand() * (w - 40), y: 16 + rand() * (h - 60), alive: true });
+  }
+  const roots = 3 + (rand() * 3 | 0);
+  const nodes = [];
+  for (let i = 0; i < roots; i++) {
+    nodes.push({ x: w * (0.15 + rand() * 0.7), y: h - 8, px: null, py: null, depth: 0 });
+  }
+  const influence = 64, kill = 9, step = 4.2;
+  let done = false;
+  return {
+    warmup: 1000,
+    frame() {
+      if (done) return;
+      // accumulate pulls per node
+      const pull = new Map();
+      let anyAlive = false;
+      for (const a of attractors) {
+        if (!a.alive) continue;
+        anyAlive = true;
+        let best = -1, bestD = influence * influence;
+        for (let i = 0; i < nodes.length; i++) {
+          const dx = a.x - nodes[i].x, dy = a.y - nodes[i].y;
+          const d2 = dx * dx + dy * dy;
+          if (d2 < bestD) { bestD = d2; best = i; }
+        }
+        if (best >= 0) {
+          const d = Math.sqrt(bestD) || 1;
+          let v = pull.get(best);
+          if (!v) { v = { x: 0, y: 0, n: 0 }; pull.set(best, v); }
+          v.x += (a.x - nodes[best].x) / d;
+          v.y += (a.y - nodes[best].y) / d;
+          v.n++;
+        }
+      }
+      if (!anyAlive || pull.size === 0) { done = true; return; }
+      const born = [];
+      ctx.lineWidth = 1;
+      for (const [i, v] of pull) {
+        const p = nodes[i];
+        const m = Math.hypot(v.x, v.y) || 1;
+        const nx = p.x + (v.x / m) * step + (rand() - 0.5) * 1.4;
+        const ny = p.y + (v.y / m) * step + (rand() - 0.5) * 1.4;
+        born.push({ x: nx, y: ny, px: p.x, py: p.y, depth: p.depth + 1 });
+      }
+      // draw and commit new segments
+      for (const b of born) {
+        const alpha = Math.max(0.18, 0.6 - b.depth * 0.004);
+        ctx.strokeStyle = "rgba(194, 155, 60, " + alpha.toFixed(3) + ")";
+        ctx.beginPath();
+        ctx.moveTo(b.px, b.py);
+        ctx.lineTo(b.x, b.y);
+        ctx.stroke();
+        // luminous tip
+        ctx.fillStyle = "rgba(237, 230, 211, 0.5)";
+        ctx.fillRect(b.x - 0.5, b.y - 0.5, 1, 1);
+        nodes.push(b);
+      }
+      // kill reached attractors
+      for (const a of attractors) {
+        if (!a.alive) continue;
+        for (const b of born) {
+          const dx = a.x - b.x, dy = a.y - b.y;
+          if (dx * dx + dy * dy < kill * kill) { a.alive = false; break; }
+        }
+      }
+      if (nodes.length > 6000) done = true;
+    }
+  };
+}
+
+/* ==================================================================
+   WK.007 — Unda stans: interference of travelling waves
+   ================================================================== */
+
+function waveMaker(ctx, w, h, rand) {
+  const gw = 180, gh = Math.max(24, Math.round(gw * h / w));
+  const sources = [];
+  const nSrc = 4 + (rand() * 2 | 0);
+  for (let i = 0; i < nSrc; i++) {
+    sources.push({
+      ox: gw * (0.15 + rand() * 0.7),
+      oy: gh * (0.15 + rand() * 0.7),
+      orbit: 6 + rand() * 16,
+      speed: 0.004 + rand() * 0.006,
+      phase: rand() * TAU,
+      freq: 0.22 + rand() * 0.2,
+    });
+  }
+  const off = document.createElement("canvas");
+  off.width = gw; off.height = gh;
+  const octx = off.getContext("2d");
+  const img = octx.createImageData(gw, gh);
+  const data = img.data;
+  const lut = new Uint8Array(256 * 3);
+  const deep = mix(C.plate, C.verdigris, 0.3);
+  for (let i = 0; i < 256; i++) {
+    const t = i / 255;
+    let c;
+    if (t < 0.5) c = mix(C.plate, deep, t / 0.5);
+    else if (t < 0.85) c = mix(deep, C.verdigris, (t - 0.5) / 0.35);
+    else c = mix(C.verdigris, C.ivory, (t - 0.85) / 0.15);
+    lut[i * 3] = c[0]; lut[i * 3 + 1] = c[1]; lut[i * 3 + 2] = c[2];
+  }
+  const sx = new Float32Array(nSrc), sy = new Float32Array(nSrc);
+  ctx.imageSmoothingEnabled = true;
+  return {
+    warmup: 200,
+    frame(t) {
+      for (let s = 0; s < nSrc; s++) {
+        const src = sources[s];
+        sx[s] = src.ox + Math.cos(t * src.speed + src.phase) * src.orbit;
+        sy[s] = src.oy + Math.sin(t * src.speed * 1.3 + src.phase) * src.orbit;
+      }
+      let i = 0;
+      for (let y = 0; y < gh; y++) {
+        for (let x = 0; x < gw; x++) {
+          let field = 0;
+          for (let s = 0; s < nSrc; s++) {
+            const dx = x - sx[s], dy = y - sy[s];
+            field += Math.sin(Math.sqrt(dx * dx + dy * dy) * sources[s].freq - t * 0.05 + sources[s].phase);
+          }
+          // sharpen into bands
+          const v = Math.pow(Math.abs(Math.sin(field * 1.4)), 3);
+          const idx = (v * 255) | 0;
+          data[i * 4] = lut[idx * 3];
+          data[i * 4 + 1] = lut[idx * 3 + 1];
+          data[i * 4 + 2] = lut[idx * 3 + 2];
+          data[i * 4 + 3] = 255;
+          i++;
+        }
+      }
+      octx.putImageData(img, 0, 0);
+      ctx.drawImage(off, 0, 0, w, h);
+    }
+  };
+}
+
+/* ==================================================================
+   WK.008 — Helianthus aureus: phyllotaxis bloom
+   ================================================================== */
+
+function phylloMaker(ctx, w, h, rand) {
+  const golden = Math.PI * (3 - Math.sqrt(5)); // 137.507…°
+  const maxDots = 900;
+  const c0 = Math.min(w, h) / 62;
+  const jitter = rand() * TAU;
+  return {
+    warmup: 1000,
+    frame(t) {
+      ctx.fillStyle = "#071310";
+      ctx.fillRect(0, 0, w, h);
+      const count = Math.min(maxDots, 10 + t * 1.6);
+      const rot = jitter + t * 0.0012;
+      const breathe = 1 + Math.sin(t * 0.014) * 0.02;
+      const cx = w / 2, cy = h / 2;
+      for (let i = 0; i < count; i++) {
+        const a = i * golden + rot;
+        const r = c0 * Math.sqrt(i) * breathe;
+        const x = cx + Math.cos(a) * r;
+        const y = cy + Math.sin(a) * r;
+        const tt = i / maxDots;
+        let col;
+        if (tt < 0.3)      col = mix(C.ivory, C.brass, tt / 0.3);
+        else if (tt < 0.7) col = mix(C.brass, C.verdigris, (tt - 0.3) / 0.4);
+        else               col = mix(C.verdigris, mix(C.verdigris, C.plate, 0.55), (tt - 0.7) / 0.3);
+        const size = 1.1 + tt * 3.4;
+        const alpha = i > count - 30 ? (count - i) / 30 : 1;
+        ctx.fillStyle = "rgba(" + (col[0] | 0) + "," + (col[1] | 0) + "," + (col[2] | 0) + "," + (0.85 * alpha).toFixed(3) + ")";
+        ctx.beginPath();
+        ctx.arc(x, y, size, 0, TAU);
+        ctx.fill();
+      }
+    }
+  };
+}
+
+/* ==================================================================
+   the collection
+   ================================================================== */
+
+const SPECIMENS = [
+  {
+    id: "WK.001", wide: true, maker: flowMaker,
+    latin: "Flumen ignotum", common: "The unknown river",
+    medium: "≈3,000 particles · noise-field advection",
+    note: "Each particle asks an invisible field which way to drift, and answers with a single brushstroke. The river exists only while you watch it.",
+  },
+  {
+    id: "WK.002", maker: boidsMaker,
+    latin: "Sturnus calculans", common: "The counting starling",
+    medium: "170 boids · Reynolds flocking, three rules",
+    note: "No bird is in charge. Separation, alignment, cohesion — the murmuration is what the arithmetic looks like from far away.",
+  },
+  {
+    id: "WK.003", maker: coralMaker,
+    latin: "Corallium chemicum", common: "Chemical coral",
+    medium: "Gray–Scott reaction–diffusion · F 0.0545, k 0.062",
+    note: "Two imaginary chemicals feed and devour one another. Turing sketched this arithmetic in 1952; the coral has been growing ever since.",
+  },
+  {
+    id: "WK.004", maker: growthMaker,
+    latin: "Limes crescens", common: "The growing border",
+    medium: "Differential growth · a ring that cannot stop dividing",
+    note: "A circle of points that pushes itself apart and splits where it stretches. Given a boundary, it folds — the same reason brains and corals wrinkle.",
+  },
+  {
+    id: "WK.005", maker: lorenzMaker,
+    latin: "Papilio deterministicus", common: "The deterministic butterfly",
+    medium: "Lorenz attractor · σ 10, ρ 28, β 8⁄3 · three trajectories",
+    note: "Three journeys begin a hair's width apart and never agree again. Lorenz found it in the weather; it has never once repeated itself.",
+  },
+  {
+    id: "WK.006", wide: true, maker: myceliumMaker,
+    latin: "Mycelium electricum", common: "Electric mycelium",
+    medium: "Space colonization · branches racing toward scattered food",
+    note: "Hundreds of invisible morsels are hidden in the dark. The branches feel for the nearest and grow toward it, consuming the map as they go.",
+  },
+  {
+    id: "WK.007", maker: waveMaker,
+    latin: "Unda stans", common: "The standing wave",
+    medium: "Wave interference · five moving sources, summed per pixel",
+    note: "Ripples from wandering sources pass through one another and briefly agree. Where they agree, light; where they argue, dark water.",
+  },
+  {
+    id: "WK.008", maker: phylloMaker,
+    latin: "Helianthus aureus", common: "The golden sunflower",
+    medium: "Phyllotaxis · one seed every 137.5°",
+    note: "A single angle, repeated. Turn by the golden angle and no seed ever shadows another — the sunflower solved packing before we named it.",
+  },
+];
+
+/* ==================================================================
+   build the DOM, wire the plates
+   ================================================================== */
+
+// hero title: per-letter rise
+const titleEl = document.getElementById("title");
+const word = titleEl.textContent;
+titleEl.textContent = "";
+[...word].forEach((ch, i) => {
+  const span = document.createElement("span");
+  span.className = "char";
+  span.textContent = ch;
+  span.style.animationDelay = (0.15 + i * 0.045) + "s";
+  titleEl.appendChild(span);
+});
+
+// hero canvas
+const heroPlate = new Plate(document.getElementById("hero-canvas"), heroMaker);
+
+// gallery
+const gallery = document.getElementById("gallery");
+const allPlates = [heroPlate];
+for (const s of SPECIMENS) {
+  const fig = document.createElement("figure");
+  fig.className = "plate" + (s.wide ? " wide" : "");
+  fig.innerHTML =
+    '<div class="frame"><canvas aria-label="Living specimen: ' + s.common + '"></canvas></div>' +
+    '<figcaption class="label">' +
+      '<div class="label-top"><span>' + s.id + ' &middot; coll. MMXXVI</span>' +
+      '<button class="reseed" type="button">Reseed</button></div>' +
+      '<h2>' + s.latin + '</h2>' +
+      '<div class="common">' + s.common + '</div>' +
+      '<div class="medium">' + s.medium + '</div>' +
+      '<p class="note">' + s.note + '</p>' +
+    '</figcaption>';
+  gallery.appendChild(fig);
+  const plate = new Plate(fig.querySelector("canvas"), s.maker);
+  allPlates.push(plate);
+  fig.querySelector(".reseed").addEventListener("click", () => plate.reseed());
+}
+
+// debug handle for driving frames manually (used by automated checks)
+window.__wk = allPlates;
+
+// scroll reveal
+const reveal = new IntersectionObserver(entries => {
+  for (const e of entries) {
+    if (e.isIntersecting) {
+      e.target.classList.add("revealed");
+      reveal.unobserve(e.target);
+    }
+  }
+}, { threshold: 0.12 });
+document.querySelectorAll(".plate").forEach(p => reveal.observe(p));
+
+// re-layout on resize (debounced): plates re-measure next time they're seen
+let resizeTimer = null;
+let lastW = window.innerWidth;
+window.addEventListener("resize", () => {
+  if (window.innerWidth === lastW) return; // ignore mobile URL-bar height changes
+  lastW = window.innerWidth;
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(() => window.location.reload(), 400);
+});
+</script>
+</body>
+</html>
