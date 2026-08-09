@@ -362,6 +362,11 @@
     .label { margin-left: 12px; }
   }
 
+  /* The reseed control is a 23px-tall hairline button on desktop. */
+  @media (pointer: coarse) {
+    .reseed { min-height: 44px; padding-left: 14px; padding-right: 14px; }
+  }
+
   @media (prefers-reduced-motion: reduce) {
     html { scroll-behavior: auto; }
     .hero h1 .char { animation-duration: 0.01s; }
